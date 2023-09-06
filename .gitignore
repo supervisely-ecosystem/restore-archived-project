@@ -1,0 +1,6 @@
+.venv
+__pycache__
+supervisely
+dropbox.env
+app_data
+app_cache
