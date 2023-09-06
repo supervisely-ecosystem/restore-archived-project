@@ -30,5 +30,5 @@
 🖼 
 
 The new project will be created with the name consist of:
- - `archived_prject_id`
+ - `archived_project_id`
  - `archived_project_name`
