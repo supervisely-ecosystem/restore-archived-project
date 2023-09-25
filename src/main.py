@@ -6,6 +6,7 @@ import globals as g
 
 from supervisely.io.json import load_json_file
 from supervisely.api.module_api import ApiField
+from supervisely.io.fs import dir_empty, get_subdirs, file_exists
 
 
 def download_file_from_dropbox(shared_link: str, destination_path, type: str):
@@ -94,7 +95,11 @@ def create_reverse_mapping(filenames):
 
 
 def make_true_source_path(file_path, unzip_files_path, reverse_mapping):
-    relative_path = os.path.relpath(file_path, unzip_files_path)
+    relative_path = (
+        file_path[len(unzip_files_path) + 1 :]
+        if file_path.startswith(unzip_files_path)
+        else file_path
+    )
     base_name, ext = os.path.splitext(relative_path)
 
     if base_name in reverse_mapping:
@@ -148,14 +153,7 @@ def import_project_by_type(api: sly.Api, proj_path):
     project_name = os.path.basename(os.path.normpath(proj_path))
     sly.logger.info(f"Uploading project with name [{project_name}] to instance")
     project_class: sly.Project = g.project_classes[g.project_type]
-
-    if g.project_type == sly.ProjectType.IMAGES.value:
-        files = []
-        for r, d, fs in os.walk(proj_path):
-            files.extend(os.path.join(r, file) for file in fs)
-
     project_class.upload(proj_path, api, g.wspace_id, project_name, True)
-
     shutil.rmtree(proj_path)
     sly.logger.info("✅ Project successfully restored")
 
@@ -164,12 +162,24 @@ def main():
     download_backup(g.project_info)
     unzip_archive(g.archive_files_path, g.temp_files_path)
     if g.project_type == sly.ProjectType.IMAGES.value:
-        unzip_archive(g.archive_ann_path, g.proj_path)
-        hash_name_map = load_json_file(g.hash_name_map_path)
-        filenames = get_file_list(g.temp_files_path)
-        reverse_map = create_reverse_mapping(filenames)
-        copy_files_from_json_structure(hash_name_map, g.temp_files_path, reverse_map, g.proj_path)
-        del_files(g.temp_files_path, g.hash_name_map_path)
+        if file_exists(g.archive_ann_path):
+            unzip_archive(g.archive_ann_path, g.proj_path)
+            hash_name_map = load_json_file(g.hash_name_map_path)
+            filenames = get_file_list(g.temp_files_path)
+            reverse_map = create_reverse_mapping(filenames)
+            copy_files_from_json_structure(
+                hash_name_map, g.temp_files_path, reverse_map, g.proj_path
+            )
+            del_files(g.temp_files_path, g.hash_name_map_path)
+        else:
+            sly.logger.debug("Attempting to restore images project with an old archive format")
+            ds_dirs = get_subdirs(g.temp_files_path)
+            for ds_dir in ds_dirs:
+                if dir_empty(os.path.join(g.temp_files_path, ds_dir, "ann")):
+                    raise FileNotFoundError(
+                        f"No annotation files were found in dataset '{ds_dir}' when trying to restore images project with an old archive format"
+                    )
+            move_files_to_project_dir(g.temp_files_path, g.proj_path)
     else:
         move_files_to_project_dir(g.temp_files_path, g.proj_path)
     import_project_by_type(g.api, g.proj_path)
