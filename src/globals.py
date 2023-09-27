@@ -36,4 +36,4 @@ project_classes = {
     "point_cloud_episodes": sly.PointcloudEpisodeProject,
 }
 
-download_mode = bool(strtobool(os.environ.get("modal.state.downloadMode", False)))
+download_mode = bool(strtobool(os.environ.get("modal.state.downloadMode", "false")))
