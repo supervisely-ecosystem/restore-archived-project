@@ -23,12 +23,16 @@
    
 ## How to Run
 
-🖱️ You only need to click the button "Restore" inside the archived project in your workspace.
+🖱️ You only need to click the button "Restore Project" or "Download Project" inside the archived project in your workspace.
+
+<img width="244" alt="buttons" src="https://github.com/supervisely-ecosystem/restore-archived-project/assets/57998637/9a97966e-0d81-4b1e-8bb1-444d90a1135b">
+
 
 ## Results
 
-🖼 
+<img width="673" alt="resutls" src="https://github.com/supervisely-ecosystem/restore-archived-project/assets/57998637/ed74eace-08c0-4db5-accb-00e19b39123d">
 
-The new project will be created with the name consist of:
- - `archived_project_id`
- - `archived_project_name`
+1. The new project will be created in the same workspace with the name consist of:
+   - `archived_project_id`
+   - `archived_project_name`
+2. The project will be available for download in Supervisely format as a `.tar` archive.
