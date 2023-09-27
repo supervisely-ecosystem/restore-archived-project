@@ -6,7 +6,13 @@ import globals as g
 
 from supervisely.io.json import load_json_file
 from supervisely.api.module_api import ApiField
-from supervisely.io.fs import dir_empty, get_subdirs, file_exists
+from supervisely.io.fs import (
+    dir_empty,
+    get_subdirs,
+    file_exists,
+    archive_directory,
+    get_file_name_with_ext,
+)
 
 
 def download_file_from_dropbox(shared_link: str, destination_path, type: str):
@@ -158,19 +164,34 @@ def import_project_by_type(api: sly.Api, proj_path):
     sly.logger.info("✅ Project successfully restored")
 
 
+def prepare_image_files():
+    hash_name_map = load_json_file(g.hash_name_map_path)
+    filenames = get_file_list(g.temp_files_path)
+    reverse_map = create_reverse_mapping(filenames)
+    copy_files_from_json_structure(hash_name_map, g.temp_files_path, reverse_map, g.proj_path)
+    del_files(g.temp_files_path, g.hash_name_map_path)
+
+
+def prepare_download_link():
+    tar_path = g.proj_path + ".tar"
+    archive_directory(g.proj_path, tar_path)
+    shutil.rmtree(g.proj_path)
+    team_files_path = os.path.join(
+        f"tmp/supervisely/export/restore-archived-project/",
+        str(g.task_id) + "_" + get_file_name_with_ext(tar_path),
+    )
+    file_info = g.api.file.upload(g.team_id, tar_path, team_files_path)
+    os.remove(tar_path)
+    g.api.task.set_output_file_download(g.task_id, file_info.id, tar_path)
+
+
 def main():
     download_backup(g.project_info)
     unzip_archive(g.archive_files_path, g.temp_files_path)
     if g.project_type == sly.ProjectType.IMAGES.value:
         if file_exists(g.archive_ann_path):
             unzip_archive(g.archive_ann_path, g.proj_path)
-            hash_name_map = load_json_file(g.hash_name_map_path)
-            filenames = get_file_list(g.temp_files_path)
-            reverse_map = create_reverse_mapping(filenames)
-            copy_files_from_json_structure(
-                hash_name_map, g.temp_files_path, reverse_map, g.proj_path
-            )
-            del_files(g.temp_files_path, g.hash_name_map_path)
+            prepare_image_files()
         else:
             sly.logger.debug("Attempting to restore images project with an old archive format")
             ds_dirs = get_subdirs(g.temp_files_path)
@@ -182,7 +203,11 @@ def main():
             move_files_to_project_dir(g.temp_files_path, g.proj_path)
     else:
         move_files_to_project_dir(g.temp_files_path, g.proj_path)
-    import_project_by_type(g.api, g.proj_path)
+
+    if g.download_mode:
+        prepare_download_link()
+    else:
+        import_project_by_type(g.api, g.proj_path)
 
 
 if __name__ == "__main__":

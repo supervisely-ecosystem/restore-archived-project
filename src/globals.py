@@ -4,6 +4,8 @@ import supervisely as sly
 from dotenv import load_dotenv
 from supervisely.io.fs import mkdir
 
+from distutils.util import strtobool
+
 if sly.is_development():
     load_dotenv("local.env")
     load_dotenv(os.path.expanduser("~/supervisely.env"))
@@ -16,6 +18,7 @@ task_id = int(os.environ.get("TASK_ID"))
 project_info: sly.ProjectInfo = api.project.get_info_by_id(project_id)
 project_type = project_info.type
 wspace_id = project_info.workspace_id
+team_id = api.workspace.get_info_by_id(wspace_id).team_id
 proj_path = os.path.join("./", str(project_id) + "_" + project_info.name)
 mkdir(proj_path)
 
@@ -32,3 +35,5 @@ project_classes = {
     "point_clouds": sly.PointcloudProject,
     "point_cloud_episodes": sly.PointcloudEpisodeProject,
 }
+
+download_mode = bool(strtobool(os.environ.get("modal.state.downloadMode", False)))
