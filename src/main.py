@@ -182,7 +182,7 @@ def prepare_download_link():
     )
     file_info = g.api.file.upload(g.team_id, tar_path, team_files_path)
     os.remove(tar_path)
-    g.api.task.set_output_file_download(g.task_id, file_info.id, tar_path)
+    g.api.task.set_output_archive(g.task_id, file_info.id, tar_path)
 
 
 def main():
