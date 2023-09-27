@@ -177,8 +177,7 @@ def prepare_download_link():
     archive_directory(g.proj_path, tar_path)
     shutil.rmtree(g.proj_path)
     team_files_path = os.path.join(
-        f"tmp/supervisely/export/restore-archived-project/",
-        str(g.task_id) + "_" + get_file_name_with_ext(tar_path),
+        f"tmp/supervisely/export/restore-archived-project/", str(g.task_id) + "_" + tar_path
     )
     file_info = g.api.file.upload(g.team_id, tar_path, team_files_path)
     os.remove(tar_path)

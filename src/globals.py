@@ -19,7 +19,7 @@ project_info: sly.ProjectInfo = api.project.get_info_by_id(project_id)
 project_type = project_info.type
 wspace_id = project_info.workspace_id
 team_id = api.workspace.get_info_by_id(wspace_id).team_id
-proj_path = os.path.join("./", str(project_id) + "_" + project_info.name)
+proj_path = str(project_id) + "_" + project_info.name
 mkdir(proj_path)
 
 
