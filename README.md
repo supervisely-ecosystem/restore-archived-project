@@ -33,6 +33,6 @@
 <img width="673" alt="resutls" src="https://github.com/supervisely-ecosystem/restore-archived-project/assets/57998637/ed74eace-08c0-4db5-accb-00e19b39123d">
 
 1. The new project will be created in the same workspace with the name consist of:
-   - `archived_project_id`
-   - `archived_project_name`
+    - `archived_project_id`
+    - `archived_project_name`
 2. The project will be available for download in Supervisely format as a `.tar` archive.
