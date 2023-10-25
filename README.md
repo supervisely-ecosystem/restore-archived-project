@@ -53,8 +53,8 @@ The best way to solve problems is to follow the steps described below.
       </div>
 
 2. If you see errors in the log related to downloading or unpacking archives, some other unexplained errors, and they do not go away after several restore attempts, you can try to run "Restore archived project" using own agent. To do this, you will need to do the following.
-   1. Read [the article](https://docs.supervisely.com/getting-started/connect-your-computer) on what an agent is and how to set it up on your computer
-   2. Set up the agent on your computer
+   1. Read [the article](https://docs.supervisely.com/getting-started/connect-your-computer) on what Supervisely Agent is and how to set it up on your computer
+   2. Set up the Agent on your computer
    3. Go to [Workspace Tasks](https://app.supervisely.com/tasks)
    4. Click `⋮` near the problem task, then `Run Again` and select your agent from the drop-down list "Agent" in the pop-up window. Run app.
       <div>
