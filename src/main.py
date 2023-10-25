@@ -3,6 +3,7 @@ import supervisely as sly
 import requests
 import tarfile, zipfile
 import globals as g
+import time
 
 from supervisely.io.json import load_json_file
 from supervisely.api.module_api import ApiField
@@ -17,18 +18,43 @@ from supervisely.io.fs import (
 
 def download_file_from_dropbox(shared_link: str, destination_path, type: str):
     direct_link = shared_link.replace("dl=0", "dl=1")
-    response = requests.get(direct_link, stream=True)
+    sly.logger.info(f"Start downloading backuped {type} from DropBox")
 
-    if response.status_code == 200:
-        total_size = int(response.headers.get("content-length", 0))
-        with open(destination_path, "wb") as file, sly.tqdm_sly(
-            desc=f"Downloading backuped {type} from DropBox", total=total_size, is_size=True
-        ) as progress_bar:
-            for chunk in response.iter_content(chunk_size=128):
-                file.write(chunk)
-                progress_bar.update(len(chunk))
-    else:
-        sly.logger.warning(f"Failed to download {type} {shared_link}")
+    retry_attemp = 0
+
+    while True:
+        try:
+            with open(destination_path, "ab") as file:
+                response = requests.get(
+                    direct_link, stream=True, headers={"Range": f"bytes={file.tell()}-"}, timeout=5
+                )
+                total_size = int(response.headers.get("content-length", 0))
+                progress_bar = sly.tqdm_sly(
+                    desc=f"Downloading backuped {type} from DropBox", total=total_size, is_size=True
+                )
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        retry_attemp = 0
+                        file.write(chunk)
+                        progress_bar.update(len(chunk))
+        except requests.exceptions.RequestException as e:
+            if retry_attemp == 0:
+                sly.logger.warning(f"Downloading request error: {str(e)}")
+            retry_attemp += 1
+            sly.logger.warning(f"Please wait ... Retrying ({retry_attemp}/10).")
+            if retry_attemp <= 5:
+                time.sleep(5)
+            elif 5 < retry_attemp < 10:
+                time.sleep(10)
+            elif retry_attemp == 10:
+                raise ConnectionError(
+                    f"Something went wrong, read the troubleshooting instructions at {g.troubleshooting_link} . If this doesn't help, please contact us."
+                )
+        except Exception as e:
+            sly.logger.warning(f"Exception: {str(e)}")
+        else:
+            sly.logger.info(f"{type.capitalize()} downloaded succesfully")
+            break
 
 
 def download_backup(project_info: sly.ProjectInfo):
@@ -74,6 +100,13 @@ def unzip_archive(archive_path, extract_path):
     except shutil.ReadError:
         with zipfile.ZipFile(archive_path, "r") as zip_ref:
             zip_ref.extractall(extract_path)
+    except Exception as e:
+        prev_arg = str(e)
+        e.args = (
+            prev_arg,
+            f"Read the troubleshooting instructions at {g.troubleshooting_link} . If this doesn't help, please contact us.",
+        )
+        raise e
     os.remove(archive_path)
     tar_parts = get_tar_parts(extract_path)
     if tar_parts:
