@@ -38,22 +38,28 @@ def download_file_from_dropbox(shared_link: str, destination_path, type: str):
                         file.write(chunk)
                         progress_bar.update(len(chunk))
         except requests.exceptions.RequestException as e:
-            if retry_attemp == 0:
-                sly.logger.warning(f"Downloading request error: {str(e)}")
             retry_attemp += 1
-            sly.logger.warning(f"Please wait ... Retrying ({retry_attemp}/10).")
-            if retry_attemp <= 5:
-                time.sleep(5)
-            elif 5 < retry_attemp < 10:
-                time.sleep(10)
-            elif retry_attemp == 10:
-                raise ConnectionError(
+            if retry_attemp == 9:
+                raise Exception(
                     f"Something went wrong, read the troubleshooting instructions at {g.troubleshooting_link} . If this doesn't help, please contact us."
                 )
+            sly.logger.warning(
+                f"Downloading request error, please wait ... Retrying ({retry_attemp}/8)"
+            )
+            if retry_attemp <= 4:
+                time.sleep(5)
+            elif 4 < retry_attemp < 9:
+                time.sleep(10)
         except Exception as e:
-            sly.logger.warning(f"Exception: {str(e)}")
+            retry_attemp += 1
+            if retry_attemp == 3:
+                raise Exception(
+                    f"Something went wrong, read the troubleshooting instructions at {g.troubleshooting_link} . If this doesn't help, please contact us."
+                )
+            sly.logger.warning(f"Error: {str(e)}. Retrying ({retry_attemp}/2")
+
         else:
-            sly.logger.info(f"{type.capitalize()} downloaded succesfully")
+            sly.logger.info(f"{type.capitalize()} downloaded successfully")
             break
 
 
