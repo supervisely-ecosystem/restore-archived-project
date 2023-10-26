@@ -16,6 +16,13 @@ from supervisely.io.fs import (
 )
 
 
+def raise_exception_with_troubleshooting_link(error: Exception):
+    error.args = (
+        f"Something went wrong, read the troubleshooting instructions at {g.troubleshooting_link} . If this doesn't help, please contact us.",
+    )
+    raise error
+
+
 def download_file_from_dropbox(shared_link: str, destination_path, type: str):
     direct_link = shared_link.replace("dl=0", "dl=1")
     sly.logger.info(f"Start downloading backuped {type} from DropBox")
@@ -40,13 +47,7 @@ def download_file_from_dropbox(shared_link: str, destination_path, type: str):
         except requests.exceptions.RequestException as e:
             retry_attemp += 1
             if retry_attemp == 9:
-                prev_arg = str(e)
-                e.args = (
-                    f"Something went wrong, read the troubleshooting instructions at {g.troubleshooting_link} . If this doesn't help, please contact us.",
-                    f"Error: {prev_arg}",
-                )
-                raise e
-
+                raise_exception_with_troubleshooting_link(e)
             sly.logger.warning(
                 f"Downloading request error, please wait ... Retrying ({retry_attemp}/8)"
             )
@@ -57,12 +58,7 @@ def download_file_from_dropbox(shared_link: str, destination_path, type: str):
         except Exception as e:
             retry_attemp += 1
             if retry_attemp == 3:
-                prev_arg = str(e)
-                e.args = (
-                    f"Something went wrong, read the troubleshooting instructions at {g.troubleshooting_link} . If this doesn't help, please contact us.",
-                    f"Error: {prev_arg}",
-                )
-                raise e
+                raise_exception_with_troubleshooting_link(e)
             sly.logger.warning(f"Error: {str(e)}. Retrying ({retry_attemp}/2")
 
         else:
@@ -114,12 +110,7 @@ def unzip_archive(archive_path, extract_path):
         with zipfile.ZipFile(archive_path, "r") as zip_ref:
             zip_ref.extractall(extract_path)
     except Exception as e:
-        prev_arg = str(e)
-        e.args = (
-            prev_arg,
-            f"Read the troubleshooting instructions at {g.troubleshooting_link} . If this doesn't help, please contact us.",
-        )
-        raise e
+        raise_exception_with_troubleshooting_link(e)
     os.remove(archive_path)
     tar_parts = get_tar_parts(extract_path)
     if tar_parts:
