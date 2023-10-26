@@ -50,7 +50,6 @@ The best way to solve problems is to follow the steps described below.
         <img width="700" alt="Log" src="https://github.com/supervisely-ecosystem/restore-archived-project/assets/57998637/d93f0afe-9802-404e-87a4-db987d0a7c5d">
         <br>
       </div>
-
 2. If errors related to downloading or unpacking archives, other unexplained errors appear in the log, and they are not resolved after several restoration attempts, you can try to run "Restore archived project" using your own agent. To do this, you need to perform the following steps.
    - Read [the article](https://docs.supervisely.com/getting-started/connect-your-computer) on what Supervisely Agent is and how to set it up on your computer
    - Set up the Agent on your computer
@@ -61,5 +60,4 @@ The best way to solve problems is to follow the steps described below.
         <img width="700" alt="Run Again" src="https://github.com/supervisely-ecosystem/restore-archived-project/assets/57998637/b75d1fc9-77d8-4e40-86b8-2ba296ca1337">
         <br>
       </div>
-
 3. If the application on your agent is still unable to restore the project, please contact us and provide log file or `TASK ID`.
