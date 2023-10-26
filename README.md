@@ -47,8 +47,8 @@ The best way to solve problems is to follow the steps described below.
    - Go to [Workspace Tasks](https://app.supervisely.com/tasks) and find the last task for "Restore archived project" app. The most recent task is always at the top of the list.
    - If you have `Error` in the output column it also contains `Open log` (1) link. If no, click `⋮` (2) on the right and choose `Log`
       <div>
-        <br>
-        <img width="700" alt="Log" src="https://github.com/supervisely-ecosystem/restore-archived-project/assets/57998637/71232198-80be-484c-a1eb-ff34af72a5e9">
+        <br>        
+        <img width="700" alt="Log" src="https://github.com/supervisely-ecosystem/restore-archived-project/assets/57998637/d93f0afe-9802-404e-87a4-db987d0a7c5d">
         <br>
       </div>
 

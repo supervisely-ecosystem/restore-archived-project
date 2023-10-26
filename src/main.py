@@ -4,16 +4,11 @@ import requests
 import tarfile, zipfile
 import globals as g
 import time
+from tqdm import tqdm
 
 from supervisely.io.json import load_json_file
 from supervisely.api.module_api import ApiField
-from supervisely.io.fs import (
-    dir_empty,
-    get_subdirs,
-    file_exists,
-    archive_directory,
-    get_file_name_with_ext,
-)
+from supervisely.io.fs import dir_empty, get_subdirs, file_exists, archive_directory
 
 
 def raise_exception_with_troubleshooting_link(error: Exception):
@@ -30,6 +25,8 @@ def download_file_from_dropbox(shared_link: str, destination_path, type: str):
     retry_attemp = 0
     timeout = 10
 
+    total_size = None
+
     while True:
         try:
             with open(destination_path, "ab") as file:
@@ -39,10 +36,14 @@ def download_file_from_dropbox(shared_link: str, destination_path, type: str):
                     headers={"Range": f"bytes={file.tell()}-"},
                     timeout=timeout,
                 )
-                total_size = int(response.headers.get("content-length", 0))
-                progress_bar = sly.tqdm_sly(
-                    desc=f"Downloading backuped {type} from DropBox", total=total_size, is_size=True
-                )
+                if total_size is None:
+                    total_size = int(response.headers.get("content-length", 0))
+                    progress_bar = tqdm(
+                        desc=f"Downloading backuped {type} from DropBox",
+                        total=total_size,
+                        is_size=True,
+                    )
+                sly.logger.info("Connection established")
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         retry_attemp = 0
