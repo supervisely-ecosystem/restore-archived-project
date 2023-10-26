@@ -38,6 +38,7 @@
    - `archived_project_name`
 2. The project will be available for download in Supervisely format as a `.tar` archive.
 
+
 ## Troubleshooting
 
 The best way to solve problems is to follow the steps described below.
