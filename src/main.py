@@ -111,6 +111,7 @@ def combine_parts(parts_paths, output_path):
 
 
 def unzip_archive(archive_path, extract_path):
+    sly.logger.info("Extracting files, please wait ...")
     try:
         shutil.unpack_archive(archive_path, extract_path)
     except shutil.ReadError:
