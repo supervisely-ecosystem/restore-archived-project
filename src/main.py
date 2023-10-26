@@ -40,9 +40,13 @@ def download_file_from_dropbox(shared_link: str, destination_path, type: str):
         except requests.exceptions.RequestException as e:
             retry_attemp += 1
             if retry_attemp == 9:
-                raise Exception(
-                    f"Something went wrong, read the troubleshooting instructions at {g.troubleshooting_link} . If this doesn't help, please contact us."
+                prev_arg = str(e)
+                e.args = (
+                    f"Something went wrong, read the troubleshooting instructions at {g.troubleshooting_link} . If this doesn't help, please contact us.",
+                    f"Error: {prev_arg}",
                 )
+                raise e
+
             sly.logger.warning(
                 f"Downloading request error, please wait ... Retrying ({retry_attemp}/8)"
             )
@@ -53,9 +57,12 @@ def download_file_from_dropbox(shared_link: str, destination_path, type: str):
         except Exception as e:
             retry_attemp += 1
             if retry_attemp == 3:
-                raise Exception(
-                    f"Something went wrong, read the troubleshooting instructions at {g.troubleshooting_link} . If this doesn't help, please contact us."
+                prev_arg = str(e)
+                e.args = (
+                    f"Something went wrong, read the troubleshooting instructions at {g.troubleshooting_link} . If this doesn't help, please contact us.",
+                    f"Error: {prev_arg}",
                 )
+                raise e
             sly.logger.warning(f"Error: {str(e)}. Retrying ({retry_attemp}/2")
 
         else:
