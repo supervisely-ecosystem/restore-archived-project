@@ -28,12 +28,16 @@ def download_file_from_dropbox(shared_link: str, destination_path, type: str):
     sly.logger.info(f"Start downloading backuped {type} from DropBox")
 
     retry_attemp = 0
+    timeout = 10
 
     while True:
         try:
             with open(destination_path, "ab") as file:
                 response = requests.get(
-                    direct_link, stream=True, headers={"Range": f"bytes={file.tell()}-"}, timeout=5
+                    direct_link,
+                    stream=True,
+                    headers={"Range": f"bytes={file.tell()}-"},
+                    timeout=timeout,
                 )
                 total_size = int(response.headers.get("content-length", 0))
                 progress_bar = sly.tqdm_sly(
@@ -46,6 +50,8 @@ def download_file_from_dropbox(shared_link: str, destination_path, type: str):
                         progress_bar.update(len(chunk))
         except requests.exceptions.RequestException as e:
             retry_attemp += 1
+            if timeout < 90:
+                timeout += 10
             if retry_attemp == 9:
                 raise_exception_with_troubleshooting_link(e)
             sly.logger.warning(
