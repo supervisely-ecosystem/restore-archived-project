@@ -31,7 +31,7 @@
 
 ## Results
 
-<img width="673" alt="resutls" src="https://github.com/supervisely-ecosystem/restore-archived-project/assets/57998637/ed74eace-08c0-4db5-accb-00e19b39123d">
+<img width="700" alt="resutls" src="https://github.com/supervisely-ecosystem/restore-archived-project/assets/57998637/327430ea-f99e-457e-9ff9-58537061162b">
 
 1. The new project will be created in the same workspace with the name consist of:
    - `archived_project_id`
@@ -48,7 +48,7 @@ The best way to solve problems is to follow the steps described below.
    - If you have `Error` in the output column it also contains `Open log` (1) link. If no, click `⋮` (2) on the right and choose `Log`
       <div>
         <br>        
-        <img width="700" alt="Log" src="https://github.com/supervisely-ecosystem/restore-archived-project/assets/57998637/d93f0afe-9802-404e-87a4-db987d0a7c5d">
+        <img width="700" alt="log" src="https://github.com/supervisely-ecosystem/restore-archived-project/assets/57998637/91ee330f-88df-44b2-adaa-4d2da1efc494">
         <br>
       </div>
 2. If errors related to downloading or unpacking archives, other unexplained errors appear in the log, and they are not resolved after several restoration attempts, you can try to run "Restore archived project" using your own agent. To do this, you need to perform the following steps.
@@ -58,7 +58,7 @@ The best way to solve problems is to follow the steps described below.
    - Click the `⋮` button next to the problem task, then `Run Again`, and in the pop-up window, select your agent from the `Agent` drop-down list. `Run` the application
       <div>
         <br>
-        <img width="700" alt="Run Again" src="https://github.com/supervisely-ecosystem/restore-archived-project/assets/57998637/b75d1fc9-77d8-4e40-86b8-2ba296ca1337">
+        <img width="700" alt="run again" src="https://github.com/supervisely-ecosystem/restore-archived-project/assets/57998637/b75d1fc9-77d8-4e40-86b8-2ba296ca1337">
         <br>
       </div>
 3. If the application on your agent is still unable to restore the project, please contact us and provide log file or `TASK ID`.
