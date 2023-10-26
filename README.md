@@ -42,8 +42,7 @@
 
 The best way to solve problems is to follow the steps described below.
 
-1. Check logs 
-   
+1. Check logs   
    - Go to [Workspace Tasks](https://app.supervisely.com/tasks) and find the last task for "Restore archived project" app. The most recent task is always at the top of the list.
    - If you have `Error` in the output column it also contains `Open log` (1) link. If no, click `⋮` (2) on the right and choose `Log`
       <div>
