@@ -37,3 +37,7 @@ project_classes = {
 }
 
 download_mode = bool(strtobool(os.environ.get("modal.state.downloadMode", "false")))
+
+troubleshooting_link = (
+    "https://ecosystem.supervisely.com/apps/restore-archived-project?id=283#troubleshooting"
+)
