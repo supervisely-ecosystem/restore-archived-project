@@ -176,18 +176,16 @@ def copy_files_from_json_structure(
         for image in images:
             hash_value = image.get("hash")
             name = image.get("name")
-
             source_path = os.path.join(temp_files_path, hash_value)
             true_source_path = make_true_source_path(source_path, temp_files_path, reverse_mapping)
-
             if true_source_path is None:
                 missed_hashes.append({"name": name, "source_path": source_path})
                 continue
-
             destination_path = os.path.join(destination_folder, name)
             shutil.copy(true_source_path, destination_path)
 
-        download_missed_hashes(missed_hashes, destination_folder, dataset_name)
+        if len(missed_hashes) != 0:
+            download_missed_hashes(missed_hashes, destination_folder, dataset_name)
 
 
 def download_missed_hashes(missed_hashes, destination_folder, dataset_name):
