@@ -210,6 +210,8 @@ def download_missed_hashes(missed_hashes, destination_folder, dataset_name):
             except (json.JSONDecodeError, UnicodeDecodeError):
                 raise e
             sly.logger.warning(f"Skipping files with this hashes for dataset '{dataset_name}'")
+        else:
+            raise e
         if len(hashes) != 0 and len(hashes) != len(image_hashes):
             for d_hash in hashes:
                 index = image_hashes.index(d_hash)
