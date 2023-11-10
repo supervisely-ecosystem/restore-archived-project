@@ -145,11 +145,11 @@ def create_reverse_mapping(filenames):
     return reverse_mapping
 
 
-def make_true_source_path(file_path, unzip_files_path, reverse_mapping):
+def make_true_source_path(source_path, unzip_files_path, reverse_mapping):
     relative_path = (
-        file_path[len(unzip_files_path) + 1 :]
-        if file_path.startswith(unzip_files_path)
-        else file_path
+        source_path[len(unzip_files_path) + 1 :]
+        if source_path.startswith(unzip_files_path)
+        else source_path
     )
     base_name, ext = os.path.splitext(relative_path)
 
@@ -157,15 +157,7 @@ def make_true_source_path(file_path, unzip_files_path, reverse_mapping):
         new_name = reverse_mapping[base_name]
         new_path = os.path.join(unzip_files_path, new_name + ext)
     else:
-        try:
-            new_name = base_name.replace("/", "-") + ext
-            new_path = os.path.join(unzip_files_path, new_name)
-            g.api.image.download_paths_by_hashes([f"{file_path.split('/files/')[1]}"], [new_path])
-        except requests.HTTPError as e:
-            message = str(e)
-            if "Hashes not found" in message:
-                sly.logger.warning("Skipping ...")
-                return None
+        return None
     return new_path
 
 
@@ -175,6 +167,7 @@ def copy_files_from_json_structure(
     datasets = json_data.get("datasets", [])
 
     for dataset in datasets:
+        missed_hashes = []
         dataset_name = dataset.get("name")
         images = dataset.get("images", [])
 
@@ -185,13 +178,34 @@ def copy_files_from_json_structure(
             name = image.get("name")
 
             source_path = os.path.join(temp_files_path, hash_value)
-            source_path = make_true_source_path(source_path, temp_files_path, reverse_mapping)
+            true_source_path = make_true_source_path(source_path, temp_files_path, reverse_mapping)
 
-            if source_path is None:
+            if true_source_path is None:
+                missed_hashes.append({"name": name, "source_path": source_path})
                 continue
 
             destination_path = os.path.join(destination_folder, name)
-            shutil.copy(source_path, destination_path)
+            shutil.copy(true_source_path, destination_path)
+
+        download_missed_hashes(missed_hashes, destination_folder, dataset_name)
+
+
+def download_missed_hashes(missed_hashes, destination_folder, dataset_name):
+    image_hashes = []
+    image_destination_pathes = []
+    for m_hash in missed_hashes:
+        name = m_hash["name"]
+        source_path: str = m_hash["source_path"]
+        image_destination_path = os.path.join(destination_folder, name)
+        image_hash = f"{source_path.split('/files/')[1]}"
+        image_hashes.append(image_hash)
+        image_destination_pathes.append(image_destination_path)
+    try:
+        g.api.image.download_paths_by_hashes(image_hashes, image_destination_pathes)
+    except requests.HTTPError as e:
+        message = str(e)
+        if "Hashes not found" in message:
+            sly.logger.warning(f"Skipping files with this hashes for dataset '{dataset_name}'")
 
 
 def move_files_to_project_dir(temp_files_path, proj_path):
