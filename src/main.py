@@ -156,9 +156,17 @@ def make_true_source_path(file_path, unzip_files_path, reverse_mapping):
     if base_name in reverse_mapping:
         new_name = reverse_mapping[base_name]
         new_path = os.path.join(unzip_files_path, new_name + ext)
-        return new_path
     else:
-        print(f"No mapping found for file: {file_path}")
+        try:
+            new_name = base_name.replace("/", "-") + ext
+            new_path = os.path.join(unzip_files_path, new_name)
+            g.api.image.download_paths_by_hashes([f"{file_path.split('/files/')[1]}"], [new_path])
+        except requests.HTTPError as e:
+            message = str(e)
+            if "Hashes not found" in message:
+                sly.logger.warning("Skipping ...")
+                return None
+    return new_path
 
 
 def copy_files_from_json_structure(
@@ -178,6 +186,9 @@ def copy_files_from_json_structure(
 
             source_path = os.path.join(temp_files_path, hash_value)
             source_path = make_true_source_path(source_path, temp_files_path, reverse_mapping)
+
+            if source_path is None:
+                continue
 
             destination_path = os.path.join(destination_folder, name)
             shutil.copy(source_path, destination_path)
