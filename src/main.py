@@ -208,12 +208,12 @@ def download_missed_hashes(missed_hashes, destination_folder, dataset_name):
             message = message.replace('"', "")
             hashes = message.split(",")
             sly.logger.warning(f"Skipping files with this hashes for dataset '{dataset_name}'")
-    if len(hashes) != 0 and len(hashes) != len(image_hashes):
-        for d_hash in hashes:
-            index = image_hashes.index(d_hash)
-            image_hashes.pop(index)
-            image_destination_pathes.pop(index)
-        g.api.image.download_paths_by_hashes(image_hashes, image_destination_pathes)
+        if len(hashes) != 0 and len(hashes) != len(image_hashes):
+            for d_hash in hashes:
+                index = image_hashes.index(d_hash)
+                image_hashes.pop(index)
+                image_destination_pathes.pop(index)
+            g.api.image.download_paths_by_hashes(image_hashes, image_destination_pathes)
 
 
 def move_files_to_project_dir(temp_files_path, proj_path):
