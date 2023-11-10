@@ -202,10 +202,10 @@ def download_missed_hashes(missed_hashes, destination_folder, dataset_name):
     try:
         g.api.image.download_paths_by_hashes(image_hashes, image_destination_pathes)
     except requests.HTTPError as e:
-        message = str(e)
-        if "Hashes not found" in message:
+        content_json = json.loads(e.response.content.decode("utf-8"))
+        message = content_json.get("details", {}).get("message", [])
+        if "Hashes not found" == message:
             try:
-                content_json = json.loads(e.response.content.decode("utf-8"))
                 hashes = content_json.get("details", {}).get("hashes", [])
             except (json.JSONDecodeError, UnicodeDecodeError):
                 raise e
