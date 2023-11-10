@@ -4,6 +4,7 @@ import requests
 import tarfile, zipfile
 import globals as g
 import time
+import json
 from tqdm import tqdm
 
 from supervisely.io.json import load_json_file
@@ -203,10 +204,11 @@ def download_missed_hashes(missed_hashes, destination_folder, dataset_name):
     except requests.HTTPError as e:
         message = str(e)
         if "Hashes not found" in message:
-            message = message.split('"hashes":[')[-1]
-            message = message.strip("]}})")
-            message = message.replace('"', "")
-            hashes = message.split(",")
+            try:
+                content_json = json.loads(e.response.content.decode("utf-8"))
+                hashes = content_json.get("details", {}).get("hashes", [])
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                raise e
             sly.logger.warning(f"Skipping files with this hashes for dataset '{dataset_name}'")
         if len(hashes) != 0 and len(hashes) != len(image_hashes):
             for d_hash in hashes:
