@@ -14,7 +14,7 @@ from supervisely.io.fs import dir_empty, get_subdirs, file_exists, archive_direc
 
 def raise_exception_with_troubleshooting_link(error: Exception):
     error.args = (
-        f"Something went wrong, read the <a href={g.troubleshooting_link}>troubleshooting instructions</a>. If this doesn't help, please contact us.",
+        f'Something went wrong, read the <a href={g.troubleshooting_link}>"Troubleshooting Instructions"</a>. If this does not help, please contact us.',
     )
     raise error
 
