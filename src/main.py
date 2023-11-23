@@ -184,31 +184,37 @@ def copy_files_from_json_structure(
 def download_missed_hashes(missed_hashes, destination_folder, dataset_name):
     image_hashes = []
     image_destination_pathes = []
+    errors = 0
     for m_hash in missed_hashes:
         name = m_hash["name"]
         image_destination_path = os.path.join(destination_folder, name)
         image_hash = m_hash["hash"]
         image_hashes.append(image_hash)
         image_destination_pathes.append(image_destination_path)
-    try:
-        g.api.image.download_paths_by_hashes(image_hashes, image_destination_pathes)
-    except requests.HTTPError as e:
-        content_json = json.loads(e.response.content.decode("utf-8"))
-        message = content_json.get("details", {}).get("message", [])
-        if "Hashes not found" == message:
-            try:
-                hashes = content_json.get("details", {}).get("hashes", [])
-            except (json.JSONDecodeError, UnicodeDecodeError):
-                raise e
-            sly.logger.warning(f"Skipping files with this hashes for dataset '{dataset_name}'")
-        else:
-            raise e
-        if len(hashes) != 0 and len(hashes) != len(image_hashes):
-            for d_hash in hashes:
-                index = image_hashes.index(d_hash)
-                image_hashes.pop(index)
-                image_destination_pathes.pop(index)
+    while True:
+        if errors > 4:
+            sly.logger.warning(f"⚠️ Skipping retries for dataset '{dataset_name}'")
+            break
+        try:
             g.api.image.download_paths_by_hashes(image_hashes, image_destination_pathes)
+            break
+        except requests.HTTPError as e:
+            errors += 1
+            content_json = json.loads(e.response.content.decode("utf-8"))
+            message = content_json.get("details", {}).get("message", [])
+            if "Hashes not found" == message:
+                try:
+                    hashes = content_json.get("details", {}).get("hashes", [])
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    raise e
+                sly.logger.warning(f"Skipping files with this hashes for dataset '{dataset_name}'")
+                if len(hashes) != 0:
+                    idxs_to_remove = [
+                        index for index, d_hash in enumerate(image_hashes) if d_hash in hashes
+                    ]
+                    for index in sorted(idxs_to_remove, reverse=True):
+                        image_hashes.pop(index)
+                        image_destination_pathes.pop(index)
 
 
 def move_files_to_project_dir(temp_files_path, proj_path):
