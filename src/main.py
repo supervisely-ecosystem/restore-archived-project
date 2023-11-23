@@ -146,17 +146,10 @@ def create_reverse_mapping(filenames):
     return reverse_mapping
 
 
-def make_true_source_path(source_path, unzip_files_path, reverse_mapping):
-    relative_path = (
-        source_path[len(unzip_files_path) + 1 :]
-        if source_path.startswith(unzip_files_path)
-        else source_path
-    )
-    base_name, ext = os.path.splitext(relative_path)
-
-    if base_name in reverse_mapping:
-        new_name = reverse_mapping[base_name]
-        new_path = os.path.join(unzip_files_path, new_name + ext)
+def make_real_source_path(hash_value, temp_files_path, reverse_mapping):
+    if hash_value in reverse_mapping:
+        new_name = reverse_mapping[hash_value]
+        new_path = os.path.join(temp_files_path, new_name)
     else:
         return None
     return new_path
@@ -177,13 +170,12 @@ def copy_files_from_json_structure(
         for image in images:
             hash_value = image.get("hash")
             name = image.get("name")
-            source_path = os.path.join(temp_files_path, hash_value)
-            true_source_path = make_true_source_path(source_path, temp_files_path, reverse_mapping)
-            if true_source_path is None:
-                missed_hashes.append({"name": name, "source_path": source_path})
+            real_source_path = make_real_source_path(hash_value, temp_files_path, reverse_mapping)
+            if real_source_path is None:
+                missed_hashes.append({"name": name, "hash": hash_value})
                 continue
             destination_path = os.path.join(destination_folder, name)
-            shutil.copy(true_source_path, destination_path)
+            shutil.copy(real_source_path, destination_path)
 
         if len(missed_hashes) != 0:
             download_missed_hashes(missed_hashes, destination_folder, dataset_name)
@@ -194,9 +186,8 @@ def download_missed_hashes(missed_hashes, destination_folder, dataset_name):
     image_destination_pathes = []
     for m_hash in missed_hashes:
         name = m_hash["name"]
-        source_path: str = m_hash["source_path"]
         image_destination_path = os.path.join(destination_folder, name)
-        image_hash = f"{source_path.split('/files/')[1]}"
+        image_hash = m_hash["hash"]
         image_hashes.append(image_hash)
         image_destination_pathes.append(image_destination_path)
     try:
