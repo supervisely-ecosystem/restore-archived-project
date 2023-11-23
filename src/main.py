@@ -146,15 +146,10 @@ def create_reverse_mapping(filenames):
     return reverse_mapping
 
 
-def make_true_source_path(src_path, unzip_files_path, reverse_mapping):
-    relative_path = (
-        src_path[len(unzip_files_path) + 1 :] if src_path.startswith(unzip_files_path) else src_path
-    )
-    base_name, ext = os.path.splitext(relative_path)
-
-    if base_name in reverse_mapping:
-        new_name = reverse_mapping[base_name]
-        new_path = os.path.join(unzip_files_path, new_name + ext)
+def make_real_source_path(hash_value, temp_files_path, reverse_mapping):
+    if hash_value in reverse_mapping:
+        new_name = reverse_mapping[hash_value]
+        new_path = os.path.join(temp_files_path, new_name)
     else:
         return None
     return new_path
@@ -175,17 +170,12 @@ def copy_files_from_json_structure(
         for image in images:
             hash_value = image.get("hash")
             name = image.get("name")
-            source_path = (
-                temp_files_path + "/" + hash_value
-                if hash_value.startswith("/")
-                else os.path.join(temp_files_path, hash_value)
-            )
-            true_source_path = make_true_source_path(source_path, temp_files_path, reverse_mapping)
-            if true_source_path is None:
+            real_source_path = make_real_source_path(hash_value, temp_files_path, reverse_mapping)
+            if real_source_path is None:
                 missed_hashes.append({"name": name, "hash": hash_value})
                 continue
             destination_path = os.path.join(destination_folder, name)
-            shutil.copy(true_source_path, destination_path)
+            shutil.copy(real_source_path, destination_path)
 
         if len(missed_hashes) != 0:
             download_missed_hashes(missed_hashes, destination_folder, dataset_name)
