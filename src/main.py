@@ -238,9 +238,37 @@ def import_project_by_type(api: sly.Api, proj_path):
     project_name = os.path.basename(os.path.normpath(proj_path))
     sly.logger.info(f"Uploading project with name [{project_name}] to instance")
     project_class: sly.Project = g.project_classes[g.project_type]
+    if g.project_type == sly.ProjectType.IMAGES.value:
+        check_shapes_in_images_project(proj_path)
     project_class.upload(proj_path, api, g.wspace_id, project_name, True)
     shutil.rmtree(proj_path)
     sly.logger.info("✅ Project successfully restored")
+
+
+def check_shapes_in_images_project(project_dir):
+    project_fs = sly.Project(project_dir, sly.OpenMode.READ)
+    keep_classes = []  # will be used to filter annotations
+    remove_classes = []  # will be used to remove classes from meta
+    for obj_cls in project_fs.meta.obj_classes:
+        if obj_cls.geometry_type != sly.Cuboid:
+            keep_classes.append(obj_cls.name)
+        else:
+            sly.logger.warn(
+                f"Class {obj_cls.name} has unsupported geometry type {obj_cls.geometry_type.name()}. "
+                f"Class will be removed from meta and all annotations."
+            )
+            remove_classes.append(obj_cls.name)
+
+    meta = project_fs.meta.delete_obj_classes(remove_classes)
+    for dataset_fs in project_fs.datasets:
+        dataset_fs: sly.Dataset
+        for item_name in dataset_fs:
+            ann_path = dataset_fs.get_ann_path(item_name)
+
+            ann = sly.Annotation.load_json_file(ann_path, project_fs.meta)
+            ann = ann.filter_labels_by_classes(keep_classes)
+            sly.json.dump_json_file(ann.to_json(), ann_path)
+    project_fs.set_meta(meta)
 
 
 def prepare_image_files():
