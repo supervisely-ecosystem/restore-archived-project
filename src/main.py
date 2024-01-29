@@ -336,13 +336,24 @@ def prepare_download_link():
     team_files_path = os.path.join(
         f"tmp/supervisely/export/restore-archived-project/", str(g.task_id) + "_" + tar_path
     )
-    total_size = os.path.getsize(tar_path)
-    pbar = tqdm(
-        desc=f"Uploading ",
-        total=total_size,
-        is_size=True,
+    upload_progress = []
+    def _print_progress(monitor, upload_progress):
+        if len(upload_progress) == 0:
+            upload_progress.append(
+                sly.Progress(
+                    message=f"Uploading {tar_path}",
+                    total_cnt=monitor.len,
+                    ext_logger=sly.logger,
+                    is_size=True,
+                )
+            )
+        upload_progress[0].set_current_value(monitor.bytes_read)
+    file_info = g.api.file.upload(
+        g.team_id,
+        tar_path,
+        team_files_path,
+        lambda m: _print_progress(m, upload_progress),
     )
-    file_info = g.api.file.upload(g.team_id, tar_path, team_files_path, pbar.update)
     os.remove(tar_path)
     g.api.task.set_output_archive(g.task_id, file_info.id, tar_path)
 
