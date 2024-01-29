@@ -245,6 +245,46 @@ def import_project_by_type(api: sly.Api, proj_path):
     sly.logger.info("✅ Project successfully restored")
 
 
+def handle_broken_ann(ann_path, meta, keep_classes):
+    ann_name = os.path.basename(ann_path)
+    ann_json = sly.json.load_json_file(ann_path)
+    img_size = ann_json.get("size") # {"height": 800, "width": 1067}
+    if img_size is None:
+        raise RuntimeError(f"Image size is not found in annotation: {ann_name}")
+    img_size = img_size["height"], img_size["width"]
+    description = ann_json.get("description", "")
+    objects = ann_json.get("objects", [])
+    tags = ann_json.get("tags", [])
+
+    keep_labels = []
+    for obj in objects:
+        obj_class_name = obj.get("classTitle")
+        if obj_class_name in keep_classes:
+            try:
+                label = sly.Label.from_json(obj, meta)
+                keep_labels.append(label)
+            except Exception as e:
+                # * log error level to see what is wrong with annotation in elasticsearch
+                sly.logger.error(f"Skipping label: {repr(e)}", extra={"ann_name": ann_name}, exc_info=True)
+    
+    kepp_tags = []
+    for tag in tags:
+        try:
+            tag = sly.Tag.from_json(tag, meta.tag_metas)
+            kepp_tags.append(tag)
+        except Exception as e:
+            # * log error level to see what is wrong with annotation in elasticsearch
+            sly.logger.error(f"Skipping tag: {repr(e)}", extra={"ann_name": ann_name}, exc_info=True)
+    
+    ann = sly.Annotation(
+        img_size=img_size,
+        labels=keep_labels,
+        img_tags=kepp_tags,
+        img_description=description
+    )
+    return ann
+
+
 def check_shapes_in_images_project(project_dir):
     project_fs = sly.Project(project_dir, sly.OpenMode.READ)
     keep_classes = []  # will be used to filter annotations
@@ -265,8 +305,20 @@ def check_shapes_in_images_project(project_dir):
         for item_name in dataset_fs:
             ann_path = dataset_fs.get_ann_path(item_name)
 
-            ann = sly.Annotation.load_json_file(ann_path, project_fs.meta)
-            ann = ann.filter_labels_by_classes(keep_classes)
+            try:
+                ann = sly.Annotation.load_json_file(ann_path, project_fs.meta)
+                ann = ann.filter_labels_by_classes(keep_classes)
+            except Exception as e:
+                sly.logger.warn(f"Someting went wrong with annotation file {ann_path}. {repr(e)}")
+                try:
+                    ann = handle_broken_ann(ann_path, project_fs.meta, keep_classes)
+                except Exception as e:
+                    sly.logger.error(
+                        f"Annotation file is broken. {repr(e)}. Skipping it.",
+                        extra={"ann_path": ann_path},
+                        exc_info=True,
+                    )
+                    continue
             sly.json.dump_json_file(ann.to_json(), ann_path)
     project_fs.set_meta(meta)
 
