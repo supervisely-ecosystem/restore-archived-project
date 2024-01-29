@@ -264,8 +264,7 @@ def handle_broken_ann(ann_path, meta, keep_classes):
                 label = sly.Label.from_json(obj, meta)
                 keep_labels.append(label)
             except Exception as e:
-                # * log error level to see what is wrong with annotation in elasticsearch
-                sly.logger.error(f"Skipping label: {repr(e)}", extra={"ann_name": ann_name}, exc_info=True)
+                sly.logger.warn(f"Skipping invalid object: {repr(e)}", extra={"ann_name": ann_name})
     
     kepp_tags = []
     for tag in tags:
@@ -273,8 +272,8 @@ def handle_broken_ann(ann_path, meta, keep_classes):
             tag = sly.Tag.from_json(tag, meta.tag_metas)
             kepp_tags.append(tag)
         except Exception as e:
-            # * log error level to see what is wrong with annotation in elasticsearch
-            sly.logger.error(f"Skipping tag: {repr(e)}", extra={"ann_name": ann_name}, exc_info=True)
+            # * log error level to see what is wrong with annotation tags
+            sly.logger.error(f"Skipping invalid tag: {repr(e)}", extra={"ann_name": ann_name}, exc_info=True)
     
     ann = sly.Annotation(
         img_size=img_size,
@@ -309,7 +308,6 @@ def check_shapes_in_images_project(project_dir):
                 ann = sly.Annotation.load_json_file(ann_path, project_fs.meta)
                 ann = ann.filter_labels_by_classes(keep_classes)
             except Exception as e:
-                sly.logger.warn(f"Someting went wrong with annotation file {ann_path}. {repr(e)}")
                 try:
                     ann = handle_broken_ann(ann_path, project_fs.meta, keep_classes)
                 except Exception as e:
@@ -338,7 +336,13 @@ def prepare_download_link():
     team_files_path = os.path.join(
         f"tmp/supervisely/export/restore-archived-project/", str(g.task_id) + "_" + tar_path
     )
-    file_info = g.api.file.upload(g.team_id, tar_path, team_files_path)
+    total_size = os.path.getsize(tar_path)
+    pbar = tqdm(
+        desc=f"Uploading ",
+        total=total_size,
+        is_size=True,
+    )
+    file_info = g.api.file.upload(g.team_id, tar_path, team_files_path, pbar.update)
     os.remove(tar_path)
     g.api.task.set_output_archive(g.task_id, file_info.id, tar_path)
 
