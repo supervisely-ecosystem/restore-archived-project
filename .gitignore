@@ -4,3 +4,4 @@ supervisely
 dropbox.env
 app_data
 app_cache
+.DS_Store
