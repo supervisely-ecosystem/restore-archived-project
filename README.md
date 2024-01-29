@@ -26,7 +26,7 @@
 
 🖱️ You only need to click the button "Restore Project" or "Download Project" inside the archived project in your workspace.
 
-<img width="244" alt="buttons" src="https://github.com/supervisely-ecosystem/restore-archived-project/assets/57998637/9a97966e-0d81-4b1e-8bb1-444d90a1135b">
+<img width="244" alt="buttons" src="https://github.com/supervisely-ecosystem/restore-archived-project/assets/79905215/82df10fa-d980-4f7e-b3ef-2a7363691444">
 
 
 ## Results
