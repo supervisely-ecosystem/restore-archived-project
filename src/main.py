@@ -1,7 +1,7 @@
 import shutil, os, re
 import supervisely as sly
 import requests
-import tarfile
+import tarfile, zipfile
 import globals as g
 import time
 import json
@@ -44,7 +44,7 @@ def download_file_from_dropbox(shared_link: str, destination_path, type: str):
                         total=total_size,
                         is_size=True,
                     )
-                sly.logger.info("Connection established")
+                sly.logger.debug("Connection established")
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         retry_attemp = 0
@@ -70,7 +70,7 @@ def download_file_from_dropbox(shared_link: str, destination_path, type: str):
             sly.logger.warning(f"Error: {str(e)}. Retrying ({retry_attemp}/2")
 
         else:
-            sly.logger.info(f"{type.capitalize()} downloaded successfully")
+            sly.logger.debug(f"{type.capitalize()} downloaded successfully")
             break
 
 
@@ -101,7 +101,7 @@ def get_tar_parts(directory):
 
 def combine_parts(parts_paths, output_path):
     parts_paths = sorted(parts_paths)
-    output_path = os.path.join(output_path, "temp_arch.tar")
+    output_path = os.path.join(output_path, "combined_parts.tar")
     with open(output_path, "wb") as output_file:
         for part_path in parts_paths:
             with open(part_path, "rb") as part_file:
@@ -111,12 +111,8 @@ def combine_parts(parts_paths, output_path):
     return output_path
 
 
-def extract_tar_with_progress(archive_path, extract_dir):
+def extract_tar_with_progress(archive_path, extract_dir, message):
     with tarfile.open(archive_path, "r") as tar_ref:
-        if "annotations" in get_file_name(archive_path):
-            message = "Extracting annotations"
-        else:
-            message = "Extracting files"
         total_size = sum(file_info.size for file_info in tar_ref.getmembers())
         with tqdm(total=total_size, is_size=True, desc=message) as progress_bar:
             for file_info in tar_ref.getmembers():
@@ -124,17 +120,34 @@ def extract_tar_with_progress(archive_path, extract_dir):
                 progress_bar.update(file_info.size)
 
 
+def extract_zip_with_progress(archive_path, extract_dir, message):
+    with zipfile.ZipFile(archive_path, "r") as zip_ref:
+        total_size = sum(file_info.file_size for file_info in zip_ref.infolist())
+        with tqdm(total=total_size, is_size=True, desc=message) as progress_bar:
+            for file_info in zip_ref.infolist():
+                zip_ref.extract(file_info, extract_dir)
+                progress_bar.update(file_info.file_size)
+
+
 def unzip_archive(archive_path, extract_path):
-    sly.logger.info("Extracting files, please wait ...")
+    filename = get_file_name(archive_path)
+    if "annotations" in filename:
+        message = "Extracting annotations"
+    else:
+        message = "Extracting files"
+    sly.logger.info(f"{message}, please wait ...")
     try:
-        extract_tar_with_progress(archive_path, extract_path)
+        extract_tar_with_progress(archive_path, extract_path, message)
+    except tarfile.ReadError:
+        extract_zip_with_progress(archive_path, extract_path, message)
     except Exception as e:
         raise_exception_with_troubleshooting_link(e)
     os.remove(archive_path)
     tar_parts = get_tar_parts(extract_path)
     if tar_parts:
+        message = "Extracting combined parts"
         full_archive = combine_parts(tar_parts, extract_path)
-        extract_tar_with_progress(full_archive, extract_path)
+        extract_tar_with_progress(full_archive, extract_path, message)
         os.remove(full_archive)
 
 
