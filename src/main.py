@@ -1,7 +1,7 @@
 import shutil, os, re
 import supervisely as sly
 import requests
-import tarfile, zipfile
+import tarfile
 import globals as g
 import time
 import json
@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from supervisely.io.json import load_json_file
 from supervisely.api.module_api import ApiField
-from supervisely.io.fs import dir_empty, get_subdirs, file_exists, archive_directory
+from supervisely.io.fs import dir_empty, get_subdirs, file_exists, archive_directory, get_file_name
 
 
 def raise_exception_with_troubleshooting_link(error: Exception):
@@ -111,21 +111,30 @@ def combine_parts(parts_paths, output_path):
     return output_path
 
 
+def extract_tar_with_progress(archive_path, extract_dir):
+    with tarfile.open(archive_path, "r") as tar_ref:
+        if "annotations" in get_file_name(archive_path):
+            message = "Extracting annotations"
+        else:
+            message = "Extracting files"
+        total_size = sum(file_info.size for file_info in tar_ref.getmembers())
+        with tqdm(total=total_size, is_size=True, desc=message) as progress_bar:
+            for file_info in tar_ref.getmembers():
+                tar_ref.extract(file_info, path=extract_dir)
+                progress_bar.update(file_info.size)
+
+
 def unzip_archive(archive_path, extract_path):
     sly.logger.info("Extracting files, please wait ...")
     try:
-        shutil.unpack_archive(archive_path, extract_path)
-    except shutil.ReadError:
-        with zipfile.ZipFile(archive_path, "r") as zip_ref:
-            zip_ref.extractall(extract_path)
+        extract_tar_with_progress(archive_path, extract_path)
     except Exception as e:
         raise_exception_with_troubleshooting_link(e)
     os.remove(archive_path)
     tar_parts = get_tar_parts(extract_path)
     if tar_parts:
         full_archive = combine_parts(tar_parts, extract_path)
-        with tarfile.open(full_archive, "r") as tar:
-            tar.extractall(extract_path)
+        extract_tar_with_progress(full_archive, extract_path)
         os.remove(full_archive)
 
 
@@ -248,7 +257,7 @@ def import_project_by_type(api: sly.Api, proj_path):
 def handle_broken_ann(ann_path, meta, keep_classes):
     ann_name = os.path.basename(ann_path)
     ann_json = sly.json.load_json_file(ann_path)
-    img_size = ann_json.get("size") # {"height": 800, "width": 1067}
+    img_size = ann_json.get("size")  # {"height": 800, "width": 1067}
     if img_size is None:
         raise RuntimeError(f"Image size is not found in annotation: {ann_name}")
     img_size = img_size["height"], img_size["width"]
@@ -265,7 +274,7 @@ def handle_broken_ann(ann_path, meta, keep_classes):
                 keep_labels.append(label)
             except Exception as e:
                 sly.logger.warn(f"Skipping invalid object: {repr(e)}", extra={"ann_name": ann_name})
-    
+
     kepp_tags = []
     for tag in tags:
         try:
@@ -273,13 +282,12 @@ def handle_broken_ann(ann_path, meta, keep_classes):
             kepp_tags.append(tag)
         except Exception as e:
             # * log error level to see what is wrong with annotation tags
-            sly.logger.error(f"Skipping invalid tag: {repr(e)}", extra={"ann_name": ann_name}, exc_info=True)
-    
+            sly.logger.error(
+                f"Skipping invalid tag: {repr(e)}", extra={"ann_name": ann_name}, exc_info=True
+            )
+
     ann = sly.Annotation(
-        img_size=img_size,
-        labels=keep_labels,
-        img_tags=kepp_tags,
-        img_description=description
+        img_size=img_size, labels=keep_labels, img_tags=kepp_tags, img_description=description
     )
     return ann
 
@@ -337,6 +345,7 @@ def prepare_download_link():
         f"tmp/supervisely/export/restore-archived-project/", str(g.task_id) + "_" + tar_path
     )
     upload_progress = []
+
     def _print_progress(monitor, upload_progress):
         if len(upload_progress) == 0:
             upload_progress.append(
@@ -348,6 +357,7 @@ def prepare_download_link():
                 )
             )
         upload_progress[0].set_current_value(monitor.bytes_read)
+
     file_info = g.api.file.upload(
         g.team_id,
         tar_path,
