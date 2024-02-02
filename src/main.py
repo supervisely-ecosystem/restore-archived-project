@@ -16,7 +16,6 @@ from supervisely.io.json import load_json_file
 from tqdm import tqdm
 
 import globals as g
-import shutil
 
 
 class NotEnoughDiskSpaceError(Exception):
