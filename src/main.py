@@ -381,6 +381,7 @@ def prepare_download_link():
     g.api.task.set_output_archive(g.task_id, file_info.id, tar_path)
 
 
+@sly.handle_exceptions(has_ui=False)
 def main():
     download_backup(g.project_info)
     unzip_archive(g.archive_files_path, g.temp_files_path)
