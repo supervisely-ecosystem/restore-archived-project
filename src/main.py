@@ -11,7 +11,14 @@ import magic
 import requests
 import supervisely as sly
 from supervisely.api.module_api import ApiField
-from supervisely.io.fs import archive_directory, dir_empty, file_exists, get_file_name, get_subdirs
+from supervisely.io.fs import (
+    archive_directory,
+    dir_empty,
+    file_exists,
+    get_file_name,
+    get_subdirs,
+    list_dir_recursively,
+)
 from supervisely.io.json import load_json_file
 from tqdm import tqdm
 
@@ -220,22 +227,25 @@ def extract_zip_with_progress(archive_path: str, extract_dir: str, message: str)
                 progress_bar.update(file_info.file_size)
 
 
-def check_disk_space(file_path: str, extract_path: str) -> bool:
+def check_disk_space(source_path: str, dest_path: str) -> bool:
     """
-    Check if disk space is enough for extraction
+    Check if there is enough disk space to process archive
 
-    :param archive_path: path to archive
-    :param extract_path: path to extract directory
-    :return: True if disk space is enough, False otherwise
+    :param source_path: path to directory or file
+    :param dest_path: path to directory
+    :return: True if there is enough disk space, False otherwise
     """
-    archive_size = os.path.getsize(file_path)
-    extract_dir = os.path.dirname(extract_path)
-    if extract_dir == "":
-        extract_dir = "."
-    free_space = shutil.disk_usage(extract_dir).free
-    sly.logger.debug(f"Free space: {free_space}, archive size: {archive_size}")
-    required_space = archive_size * 2
-    return free_space >= required_space
+
+    if os.path.isdir(os.path.abspath(source_path)):
+        source_size = sum(os.path.getsize(f) for f in list_dir_recursively(source_path, True, True))
+    else:
+        source_size = os.path.getsize(os.path.abspath(source_path))
+    dest_dir = os.path.dirname(os.path.abspath(dest_path))
+    if dest_dir == "":
+        dest_dir = "."
+    free_space = shutil.disk_usage(dest_dir).free
+    sly.logger.debug(f"Free space: {free_space}, required size: {source_size}")
+    return free_space > source_size
 
 
 def unzip_archive(archive_path: str, extract_path: str) -> None:
@@ -553,12 +563,16 @@ def prepare_image_files():
     del_files(g.temp_files_path, g.hash_name_map_path)
 
 
-def prepare_download_link():
+def prepare_downloadable_archive():
     """
-    Prepare download link
+    Prepare archive with project in supervisely format and upload it to team files
     """
 
     tar_path = g.proj_path + ".tar"
+
+    if not check_disk_space(g.proj_path, g.proj_path):
+        raise_exception_with_troubleshooting_link(NotEnoughDiskSpaceError("Not enough disk space"))
+
     archive_directory(g.proj_path, tar_path)
     shutil.rmtree(g.proj_path)
     team_files_path = os.path.join(
@@ -613,7 +627,7 @@ def main():
         move_files_to_project_dir(g.temp_files_path, g.proj_path)
 
     if g.download_mode:
-        prepare_download_link()
+        prepare_downloadable_archive()
     else:
         import_project_by_type(g.api, g.proj_path)
 
