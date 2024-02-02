@@ -19,6 +19,15 @@ import globals as g
 import shutil
 
 
+class NotEnoughDiskSpaceError(Exception):
+    """
+    Not enough disk space error
+    """
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 def raise_exception_with_troubleshooting_link(error: Exception) -> None:
     """
     Raise exception with troubleshooting link
@@ -239,7 +248,7 @@ def unzip_archive(archive_path: str, extract_path: str) -> None:
     """
 
     if not check_disk_space(archive_path, extract_path):
-        raise_exception_with_troubleshooting_link(RuntimeError("Not enough disk space"))
+        raise_exception_with_troubleshooting_link(NotEnoughDiskSpaceError("Not enough disk space"))
 
     filename = get_file_name(archive_path)
     file_type = get_file_type(archive_path)
