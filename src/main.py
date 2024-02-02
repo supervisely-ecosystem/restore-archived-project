@@ -477,7 +477,7 @@ def handle_broken_ann(ann_path: str, meta: sly.ProjectMeta, keep_classes: list) 
                 label = sly.Label.from_json(obj, meta)
                 keep_labels.append(label)
             except Exception as e:
-                sly.logger.warni(
+                sly.logger.warning(
                     f"Skipping invalid object: {repr(e)}", extra={"ann_name": ann_name}
                 )
 
