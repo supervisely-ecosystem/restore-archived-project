@@ -73,6 +73,19 @@ def download_file_from_dropbox(shared_link: str, destination_path: str, ent_type
                     headers={"Range": f"bytes={file.tell()}-"},
                     timeout=timeout,
                 )
+                content_type = response.headers.get("content-type")
+                available_content_types = ["application/binary", "application/zip", "application/x-tar"]
+                print(f"content_type: {content_type}")
+                print(f"response.status_code: {response.status_code}")
+                if retry_attemp < 2: # TODO: remove this line
+                # if response.status_code != 206 or content_type not in available_content_types: # TODO: uncomment this line
+                    raise_exception_with_troubleshooting_link(
+                        requests.exceptions.RequestException(
+                            f"Failed to download {ent_type} from DropBox. "
+                            f"Status code: {response.status_code}, content type: {content_type}. "
+                            "This may be due to server-side issues. Please try again later."
+                        )
+                    )
                 if total_size is None:
                     total_size = int(response.headers.get("content-length", 0))
                     progress_bar = tqdm(
