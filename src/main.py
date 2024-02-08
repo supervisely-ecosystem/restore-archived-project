@@ -77,7 +77,7 @@ def download_file_from_dropbox(shared_link: str, destination_path: str, ent_type
                 available_content_types = ["application/binary", "application/zip", "application/x-tar"]
                 print(f"content_type: {content_type}")
                 print(f"response.status_code: {response.status_code}")
-                if retry_attemp: # TODO: remove this line
+                if True: # TODO: remove this line
                 # if response.status_code != 206 or content_type not in available_content_types: # TODO: uncomment this line
                     raise_exception_with_troubleshooting_link(
                         requests.exceptions.RequestException(
