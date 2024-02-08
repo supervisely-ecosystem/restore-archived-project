@@ -75,8 +75,7 @@ def download_file_from_dropbox(shared_link: str, destination_path: str, ent_type
                 )
                 content_type = response.headers.get("content-type")
                 available_content_types = ["application/binary", "application/zip", "application/x-tar"]
-                if True:
-                # if response.status_code != 206 and content_type not in available_content_types:
+                if response.status_code != 206 and content_type not in available_content_types:
                     msg = f"Status code: {response.status_code}, content type: {content_type}."
                     sly.logger.warning(msg)
                     raise requests.exceptions.RequestException(msg)
