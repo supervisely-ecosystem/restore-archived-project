@@ -74,7 +74,11 @@ def download_file_from_dropbox(shared_link: str, destination_path: str, ent_type
                     timeout=timeout,
                 )
                 content_type = response.headers.get("content-type")
-                available_content_types = ["application/binary", "application/zip", "application/x-tar"]
+                available_content_types = [
+                    "application/binary",
+                    "application/zip",
+                    "application/x-tar",
+                ]
                 if response.status_code != 206 and content_type not in available_content_types:
                     msg = f"Status code: {response.status_code}, content type: {content_type}."
                     sly.logger.warning(msg)
@@ -582,7 +586,7 @@ def prepare_downloadable_archive():
     archive_directory(g.proj_path, tar_path)
     shutil.rmtree(g.proj_path)
     team_files_path = os.path.join(
-        f"tmp/supervisely/export/restore-archived-project/", str(g.task_id) + "_" + tar_path
+        "tmp/supervisely/export/restore-archived-project/", str(g.task_id) + "_" + tar_path
     )
     upload_progress = []
 
