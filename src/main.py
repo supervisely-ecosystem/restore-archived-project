@@ -9,6 +9,7 @@ from typing import List
 
 import magic
 import requests
+from tqdm import tqdm  # isort:skip
 import supervisely as sly
 from supervisely.api.module_api import ApiField
 from supervisely.io.fs import (
@@ -20,7 +21,7 @@ from supervisely.io.fs import (
     list_dir_recursively,
 )
 from supervisely.io.json import load_json_file
-from tqdm import tqdm
+
 
 import globals as g
 
