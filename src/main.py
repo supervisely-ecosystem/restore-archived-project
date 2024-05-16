@@ -582,7 +582,7 @@ def prepare_downloadable_archive():
     archive_directory(g.proj_path, tar_path)
     shutil.rmtree(g.proj_path)
     team_files_path = os.path.join(
-        f"tmp/supervisely/export/restore-archived-project/", str(g.task_id) + "_" + tar_path
+        f"/tmp/supervisely/export/restore-archived-project/", str(g.task_id) + "_" + tar_path
     )
     upload_progress = []
 
