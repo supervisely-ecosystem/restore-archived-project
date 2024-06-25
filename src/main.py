@@ -514,6 +514,16 @@ def handle_broken_ann(ann_path: str, meta: sly.ProjectMeta, keep_classes: list) 
     return ann
 
 
+def create_empty_ann(item_path: str) -> sly.Annotation:
+    """
+    Create empty annotation
+
+    :param item_path: path to item (image)
+    :return: Annotation object
+    """
+
+    return sly.Annotation.from_img_path(item_path)
+
 def check_shapes_in_images_project(project_dir: str) -> None:
     """
     Check shapes in images project
@@ -552,7 +562,8 @@ def check_shapes_in_images_project(project_dir: str) -> None:
                         extra={"ann_path": ann_path},
                         exc_info=True,
                     )
-                    continue
+                    item_path = dataset_fs.get_img_path(item_name)
+                    ann = create_empty_ann(item_path)
             sly.json.dump_json_file(ann.to_json(), ann_path)
     project_fs.set_meta(meta)
 
