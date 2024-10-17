@@ -7,13 +7,6 @@ jobs:
   pylint:
     runs-on: ubuntu-latest    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          token: ${{ secrets.PYLINT_TOKEN }}
-          continue-on-error: true
-
       - name: Install GitHub CLI
         run: |
           sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
