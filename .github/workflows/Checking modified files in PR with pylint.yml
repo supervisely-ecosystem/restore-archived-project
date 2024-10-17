@@ -12,3 +12,31 @@ jobs:
         with:
           repository: ${{ github.repository }}
           token: ${{ secrets.PYLINT_TOKEN }}
+          continue-on-error: true
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
+          sudo apt-add-repository https://cli.github.com/packages
+          sudo apt-get update
+          sudo apt-get install gh
+          
+      - name: Set status to success
+        if: success()
+        run: |
+          gh api -X POST \
+            repos/:owner/:repo/statuses/:sha \
+            -f state=success \
+            -f context="Checking modified files in PR with pylint" \
+            -f description="Pylint checks passed" \
+            -f target_url="${{ github.event.pull_request.html_url }}"
+
+      - name: Set status to failure
+        if: failure()
+        run: |
+          gh api -X POST \
+            repos/:owner/:repo/statuses/:sha \
+            -f state=failure \
+            -f context="Checking modified files in PR with pylint" \
+            -f description="Pylint checks failed" \
+            -f target_url="${{ github.event.pull_request.html_url }}"
