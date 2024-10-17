@@ -23,17 +23,17 @@ jobs:
         if: success()
         run: |
           gh api -X POST \
-            repos/:owner/:repo/statuses/:sha \
+            repos/${{ github.repository }}/statuses/${{ github.sha }} \
             -f state=success \
             -f context="Checking modified files in PR with pylint" \
             -f description="Pylint checks passed" \
-            -f target_url="${{ github.event.pull_request.html_url }}"
+            -f target_url="${{ github.event.pull_request.html_url }}"       
 
       - name: Set status to failure
         if: failure()
         run: |
           gh api -X POST \
-            repos/:owner/:repo/statuses/:sha \
+            repos/${{ github.repository }}/statuses/${{ github.sha }} \
             -f state=failure \
             -f context="Checking modified files in PR with pylint" \
             -f description="Pylint checks failed" \
