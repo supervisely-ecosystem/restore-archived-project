@@ -1,0 +1,4 @@
+[MESSAGES CONTROL]
+disable = W1203, W0718, W0707, W0621
+[FORMAT]
+max-line-length=100
