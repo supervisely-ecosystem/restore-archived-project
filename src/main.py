@@ -58,7 +58,7 @@ def raise_exception_with_troubleshooting_link(error: Exception) -> None:
 
 EXPIRED_ACCESS_TITLE = (
     # "Your project backup is still active, but the access has expired due to moving to long-term storage."
-    f'<span style="color: #000;">The access to backup has expired. <a href={g.expired_access_link}>More Info</a></span>'
+    f"The access to backup has expired. <a href={g.expired_access_link}>More Info</a>"
 )
 EXPIRED_ACCESS_DESCRIPTION = f"Please contact support to restore your data."
 
@@ -72,8 +72,8 @@ def set_output_expired_access(task_id: int) -> Dict:
         ApiField.GENERAL: {
             "icon": {
                 "className": "zmdi zmdi-alert-triangle",
-                "color": "#f5a040",
-                "backgroundColor": "#ffdeb9",
+                # "color": "#f5a040",
+                # "backgroundColor": "#ffdeb9",
             },
             "title": EXPIRED_ACCESS_TITLE,
             "description": EXPIRED_ACCESS_DESCRIPTION,
