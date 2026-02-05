@@ -86,7 +86,7 @@ def download_file_from_dropbox(shared_link: str, destination_path: str, ent_type
     """
 
     direct_link = shared_link.replace("dl=0", "dl=1")
-    sly.logger.info(f"Start downloading backuped {ent_type} from DropBox")
+    sly.logger.info(f"Started downloading backup {ent_type}")
 
     retry_attemp = 0
     timeout = 10
@@ -115,7 +115,7 @@ def download_file_from_dropbox(shared_link: str, destination_path: str, ent_type
                 if total_size is None:
                     total_size = int(response.headers.get("content-length", 0))
                     progress_bar = tqdm(
-                        desc=f"Downloading backuped {ent_type} from DropBox",
+                        desc=f"Downloading backup {ent_type}...",
                         total=total_size,
                         is_size=True,
                     )
