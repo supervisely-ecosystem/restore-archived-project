@@ -34,9 +34,9 @@ class NotEnoughDiskSpaceError(Exception):
         super().__init__(message)
 
 
-class InactivityError(Exception):
+class ExpiredAccessError(Exception):
     """
-    Inactivity error
+    Error that indicates that access to backup has expired
     """
 
     def __init__(self, message: str):
@@ -56,32 +56,32 @@ def raise_exception_with_troubleshooting_link(error: Exception) -> None:
     raise error
 
 
-INACTIVITY_TITLE = (
-    # "Your project backup is still active, but the access has expired due to inactivity."
-    "The access to your project backup has expired due to inactivity."
+EXPIRED_ACCESS_TITLE = (
+    # "Your project backup is still active, but the access has expired due to moving to long-term storage."
+    f"The access to backup has expired. <a href={g.expired_access_link}>More Info</a>."
 )
-INACTIVITY_DESCRIPTION = f"Please contact support to restore your data. Troubleshooting Instructions: {g.troubleshooting_link}"
+EXPIRED_ACCESS_DESCRIPTION = f"Please contact support to restore your data."
 
 
-def raise_exception_inactivity():
+def raise_exception_expired_access():
     """
-    Log inactivity warning and stop the app
+    Log expired access warning and stop the app
     """
-    sly.logger.warning("Downloading has failed: data access expired due to inactivity.")
+    sly.logger.warning("Downloading has failed: data access expired, please contact support.")
     g.api.task.set_output_text(
         g.task_id,
-        INACTIVITY_TITLE,
-        description=INACTIVITY_DESCRIPTION,
+        EXPIRED_ACCESS_TITLE,
+        description=EXPIRED_ACCESS_DESCRIPTION,
         zmdi_icon="zmdi-alert-triangle",
         icon_color="#f5a040",
         background_color="#ffdeb9",
     )
-    raise InactivityError(INACTIVITY_TITLE)
+    raise ExpiredAccessError(EXPIRED_ACCESS_TITLE)
 
 
-def download_file_from_dropbox(shared_link: str, destination_path: str, ent_type: str) -> None:
+def download_file_from_storage(shared_link: str, destination_path: str, ent_type: str) -> None:
     """
-    Download file from DropBox with progress bar
+    Download file from storage with progress bar
 
     :param shared_link: shared link to file
     :param destination_path: path to save file
@@ -133,7 +133,7 @@ def download_file_from_dropbox(shared_link: str, destination_path: str, ent_type
             if timeout < 90:
                 timeout += 10
             if retry_attemp == 9:
-                raise_exception_inactivity()
+                raise_exception_expired_access()
             sly.logger.warning(
                 f"Downloading request error, please wait ... Retrying ({retry_attemp}/8)"
             )
@@ -154,7 +154,7 @@ def download_file_from_dropbox(shared_link: str, destination_path: str, ent_type
 
 def download_backup(project_info: sly.ProjectInfo):
     """
-    Download backup from DropBox
+    Download backup from storage
 
     :param project_info: sly.ProjectInfo
     """
@@ -163,10 +163,10 @@ def download_backup(project_info: sly.ProjectInfo):
     annotations_archive_url = project_info.backup_archive.get(ApiField.ANN_URL)
 
     if files_archive_url:
-        download_file_from_dropbox(files_archive_url, g.archive_files_path, "files")
+        download_file_from_storage(files_archive_url, g.archive_files_path, "files")
 
     if annotations_archive_url:
-        download_file_from_dropbox(annotations_archive_url, g.archive_ann_path, "annotations")
+        download_file_from_storage(annotations_archive_url, g.archive_ann_path, "annotations")
 
 
 def is_tar_part(filename: str) -> bool:
@@ -663,7 +663,7 @@ def main():
     """
     try:
         download_backup(g.project_info)
-    except InactivityError:
+    except ExpiredAccessError:
         return
     unzip_archive(g.archive_files_path, g.temp_files_path)
     if g.project_type == sly.ProjectType.IMAGES.value:
