@@ -57,23 +57,24 @@ def raise_exception_with_troubleshooting_link(error: Exception) -> None:
 
 
 INACTIVITY_TITLE = (
-    "Your project backup is still active, but the access has expired due to inactivity."
+    # "Your project backup is still active, but the access has expired due to inactivity."
+    "The access to your project backup has expired due to inactivity."
 )
-INACTIVITY_DESCRIPTION = f"Please contact support to restore your data. <a href={g.troubleshooting_link}>Troubleshooting Instructions</a>"
+INACTIVITY_DESCRIPTION = f"Please contact support to restore your data. Troubleshooting Instructions: {g.troubleshooting_link}"
 
 
 def raise_exception_inactivity():
     """
     Log inactivity warning and stop the app
     """
-
+    sly.logger.warning("Downloading has failed: data access expired due to inactivity.")
     g.api.task.set_output_text(
         g.task_id,
         INACTIVITY_TITLE,
         description=INACTIVITY_DESCRIPTION,
         zmdi_icon="zmdi-alert-triangle",
         icon_color="#f5a040",
-        background_color="#ffd29f",
+        background_color="#ffdeb9",
     )
     raise InactivityError(INACTIVITY_TITLE)
 
