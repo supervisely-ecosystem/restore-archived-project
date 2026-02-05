@@ -5,7 +5,7 @@ import shutil
 import tarfile
 import time
 import zipfile
-from typing import List
+from typing import List, Dict
 
 import magic
 import requests
@@ -63,19 +63,38 @@ EXPIRED_ACCESS_TITLE = (
 EXPIRED_ACCESS_DESCRIPTION = f"Please contact support to restore your data."
 
 
+def set_output_expired_access(task_id: int) -> Dict:
+    """
+    Set task output for expired access error
+    """
+
+    output = {
+        ApiField.GENERAL: {
+            "icon": {
+                "className": "zmdi-alert-triangle",
+                "color": "#f5a040",
+                "backgroundColor": "#ffdeb9",
+            },
+            "title": EXPIRED_ACCESS_TITLE,
+            "description": EXPIRED_ACCESS_DESCRIPTION,
+            "showLogs": False,
+            "isError": True,
+        }
+    }
+
+    resp = g.api.post(
+        "tasks.output.set",
+        {ApiField.TASK_ID: task_id, ApiField.OUTPUT: output},
+    )
+    return resp.json()
+
+
 def raise_exception_expired_access():
     """
     Log expired access warning and stop the app
     """
     sly.logger.warning("Downloading has failed: data access expired, please contact support.")
-    g.api.task.set_output_text(
-        g.task_id,
-        EXPIRED_ACCESS_TITLE,
-        description=EXPIRED_ACCESS_DESCRIPTION,
-        zmdi_icon="zmdi-alert-triangle",
-        icon_color="#f5a040",
-        background_color="#ffdeb9",
-    )
+    set_output_expired_access(g.task_id)
     raise ExpiredAccessError(EXPIRED_ACCESS_TITLE)
 
 
