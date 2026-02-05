@@ -34,6 +34,15 @@ class NotEnoughDiskSpaceError(Exception):
         super().__init__(message)
 
 
+class InactivityError(Exception):
+    """
+    Inactivity error
+    """
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 def raise_exception_with_troubleshooting_link(error: Exception) -> None:
     """
     Raise exception with troubleshooting link
@@ -45,6 +54,26 @@ def raise_exception_with_troubleshooting_link(error: Exception) -> None:
         f"Something went wrong, read the <a href={g.troubleshooting_link}>Troubleshooting Instructions</a>. If this does not help, please contact us.",
     )
     raise error
+
+
+INACTIVITY_TITLE = "You have lost access to the data due to inactivity. If you still need it, please contact support."
+INACTIVITY_DESCRIPTION = f"Your project backup is still active, but the access has expired due to inactivity. Please contact support to restore your data. <a href={g.troubleshooting_link}>Troubleshooting Instructions</a>"
+
+
+def raise_exception_inactivity():
+    """
+    Log inactivity warning and stop the app
+    """
+
+    g.api.task.set_output_text(
+        g.task_id,
+        INACTIVITY_TITLE,
+        description=INACTIVITY_DESCRIPTION,
+        zmdi_icon="zmdi-alert-triangle",
+        icon_color="#d37c19",
+        background_color="#f7a94f",
+    )
+    raise InactivityError(INACTIVITY_TITLE)
 
 
 def download_file_from_dropbox(shared_link: str, destination_path: str, ent_type: str) -> None:
@@ -74,7 +103,11 @@ def download_file_from_dropbox(shared_link: str, destination_path: str, ent_type
                     timeout=timeout,
                 )
                 content_type = response.headers.get("content-type")
-                available_content_types = ["application/binary", "application/zip", "application/x-tar"]
+                available_content_types = [
+                    "application/binary",
+                    "application/zip",
+                    "application/x-tar",
+                ]
                 if response.status_code != 206 and content_type not in available_content_types:
                     msg = f"Status code: {response.status_code}, content type: {content_type}."
                     sly.logger.warning(msg)
@@ -97,7 +130,7 @@ def download_file_from_dropbox(shared_link: str, destination_path: str, ent_type
             if timeout < 90:
                 timeout += 10
             if retry_attemp == 9:
-                raise_exception_with_troubleshooting_link(e)
+                raise_exception_inactivity()
             sly.logger.warning(
                 f"Downloading request error, please wait ... Retrying ({retry_attemp}/8)"
             )
@@ -109,7 +142,7 @@ def download_file_from_dropbox(shared_link: str, destination_path: str, ent_type
             retry_attemp += 1
             if retry_attemp == 3:
                 raise_exception_with_troubleshooting_link(e)
-            sly.logger.warning(f"Error: {str(e)}. Retrying ({retry_attemp}/2")
+            sly.logger.warning(f"Error: {str(e)}. Retrying ({retry_attemp}/2)")
 
         else:
             sly.logger.debug(f"{ent_type.capitalize()} downloaded successfully")
@@ -524,6 +557,7 @@ def create_empty_ann(item_path: str) -> sly.Annotation:
 
     return sly.Annotation.from_img_path(item_path)
 
+
 def check_shapes_in_images_project(project_dir: str) -> None:
     """
     Check shapes in images project
@@ -624,8 +658,10 @@ def main():
     """
     Main function
     """
-
-    download_backup(g.project_info)
+    try:
+        download_backup(g.project_info)
+    except InactivityError:
+        return
     unzip_archive(g.archive_files_path, g.temp_files_path)
     if g.project_type == sly.ProjectType.IMAGES.value:
         if file_exists(g.archive_ann_path):
