@@ -56,11 +56,8 @@ def raise_exception_with_troubleshooting_link(error: Exception) -> None:
     raise error
 
 
-INACTIVITY_TITLE = (
-    # "Your project backup is still active, but the access has expired due to inactivity."
-    "The access to your project backup has expired due to inactivity."
-)
-INACTIVITY_DESCRIPTION = f"Please contact support to restore your data. Troubleshooting Instructions: {g.troubleshooting_link}"
+INACTIVITY_TITLE = "The access to your project backup has expired due to inactivity."
+INACTIVITY_DESCRIPTION = f"More info: {g.recovery_link}"
 
 
 def raise_exception_inactivity():
