@@ -56,8 +56,10 @@ def raise_exception_with_troubleshooting_link(error: Exception) -> None:
     raise error
 
 
-INACTIVITY_TITLE = "You have lost access to the data due to inactivity. If you still need it, please contact support."
-INACTIVITY_DESCRIPTION = f"Your project backup is still active, but the access has expired due to inactivity. Please contact support to restore your data. <a href={g.troubleshooting_link}>Troubleshooting Instructions</a>"
+INACTIVITY_TITLE = (
+    "Your project backup is still active, but the access has expired due to inactivity."
+)
+INACTIVITY_DESCRIPTION = f"Please contact support to restore your data. <a href={g.troubleshooting_link}>Troubleshooting Instructions</a>"
 
 
 def raise_exception_inactivity():
@@ -70,8 +72,8 @@ def raise_exception_inactivity():
         INACTIVITY_TITLE,
         description=INACTIVITY_DESCRIPTION,
         zmdi_icon="zmdi-alert-triangle",
-        icon_color="#d37c19",
-        background_color="#f7a94f",
+        icon_color="#f5a040",
+        background_color="#ffd29f",
     )
     raise InactivityError(INACTIVITY_TITLE)
 
