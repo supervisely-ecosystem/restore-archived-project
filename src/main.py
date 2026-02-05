@@ -58,7 +58,7 @@ def raise_exception_with_troubleshooting_link(error: Exception) -> None:
 
 EXPIRED_ACCESS_TITLE = (
     # "Your project backup is still active, but the access has expired due to moving to long-term storage."
-    f'<span style="color: #f5a040;">The access to backup has expired. <a href={g.expired_access_link} style="color: #20a0ff;">More Info</a>.</span>'
+    f'<span style="color: #000;">The access to backup has expired. <a href={g.expired_access_link}>More Info</a></span>'
 )
 EXPIRED_ACCESS_DESCRIPTION = f"Please contact support to restore your data."
 
