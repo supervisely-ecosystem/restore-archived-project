@@ -72,6 +72,8 @@ def set_output_expired_access(task_id: int) -> Dict:
         ApiField.GENERAL: {
             "icon": {
                 "className": "zmdi zmdi-alert-triangle",
+                "color": "#ff83a6",
+                "backgroundColor": "#ffeae9",
                 # "color": "#f5a040",
                 # "backgroundColor": "#ffdeb9",
             },
