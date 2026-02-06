@@ -6,7 +6,7 @@
   <a href='#overview'>Overview</a> •
   <a href='#how-to-run'>How to Run</a> •
   <a href='#results'>Results</a> •
-  <a href='#long-term-storage'>Long-term Storage</a>
+  <a href='#storage'>Storage</a> •
   <a href='#troubleshooting'>Troubleshooting</a>
 </p>
 
@@ -37,7 +37,7 @@
    - `archived_project_name`
 2. The project will be available for download in Supervisely format as a `.tar` archive.
 
-## Long-term Storage
+## Storage
 
 🗄️ If your project was archived a long time ago, it may have been moved to long-term secure storage to optimize resource utilization. This is an expected part of our data management process.
 
