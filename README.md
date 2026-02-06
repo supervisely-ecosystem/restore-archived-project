@@ -6,8 +6,8 @@
   <a href='#overview'>Overview</a> •
   <a href='#how-to-run'>How to Run</a> •
   <a href='#results'>Results</a> •
-  <a href='#troubleshooting'>Troubleshooting</a> •
-  <a href='#backup-expiration'>Backup Expiration</a>
+  <a href='#long-term-storage'>Long-term Storage</a>
+  <a href='#troubleshooting'>Troubleshooting</a>
 </p>
 
 [![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervisely.com/apps/supervisely-ecosystem/restore-archived-project)
@@ -37,6 +37,17 @@
    - `archived_project_name`
 2. The project will be available for download in Supervisely format as a `.tar` archive.
 
+## Long-term Storage
+
+🗄️ If your project was archived a long time ago, it may have been moved to long-term secure storage to optimize resource utilization. This is an expected part of our data management process.
+
+If you need to restore access to such a project, please reach out to our support team:
+
+- [Join our Slack community](https://supervisely.com/slack) and ask there
+- Send an email to [support@supervisely.com](mailto:support@supervisely.com) describing which project you need restored
+
+Our team will promptly restore access to your project. ✨
+
 ## Troubleshooting
 
 The best way to solve problems is to follow the steps described below.
@@ -52,12 +63,3 @@ The best way to solve problems is to follow the steps described below.
    - Click the `⋮` button next to the problem task, then `Run Again`, and in the pop-up window, select your agent from the `Agent` drop-down list. `Run` the application
      ![Run on your agent](https://github.com/supervisely-ecosystem/restore-archived-project/assets/57998637/b75d1fc9-77d8-4e40-86b8-2ba296ca1337)
 3. If the application on your agent is still unable to restore the project, please contact us and provide log file or `TASK ID`.
-
-## Backup Expiration
-
-If you encounter an error regarding expiration of access to the backup of a project, please contact support. The backup may have become inaccessible due to retention policies or other storage limitations. Our support team can help you recover your data if you still need it.
-
-You can reach us through:
-
-- Email: support@supervisely.com
-- [Slack community](https://supervisely.com/slack/)
