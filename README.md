@@ -1,13 +1,13 @@
-<div align='center' markdown> <br>
+<div align="center" markdown> <br>
 
 # Restore archived project
 
-<p align='center'>
-  <a href='#overview'>Overview</a> •
-  <a href='#how-to-run'>How to Run</a> •
-  <a href='#results'>Results</a> •
-  <a href='#storage'>Storage</a> •
-  <a href='#troubleshooting'>Troubleshooting</a>
+<p align="center">
+  <a href="#overview">Overview</a> •
+  <a href="#how-to-run">How to Run</a> •
+  <a href="#results">Results</a> •
+  <a href="#storage">Storage</a> •
+  <a href="#troubleshooting">Troubleshooting</a>
 </p>
 
 [![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervisely.com/apps/supervisely-ecosystem/restore-archived-project)
