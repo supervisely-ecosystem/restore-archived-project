@@ -42,5 +42,5 @@ troubleshooting_link = (
 )
 
 expired_access_link = (
-    "https://ecosystem.supervisely.com/apps/restore-archived-project?id=283#long-term-storage"
+    "https://ecosystem.supervisely.com/apps/restore-archived-project?id=283#storage"
 )
